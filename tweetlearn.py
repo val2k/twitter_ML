@@ -103,6 +103,17 @@ class TweetLearn():
 	tweet_test.save()
 	self.logger.info("Tweet (%d) has been added to the orm" % tweet.id)
 
+	
+    def save_tweets_orms(self, tweets):
+    	for tweet in tweets:
+	    save_tweet_orm(tweet)
+
+    def save_tweets_csv(self, tweets):
+	for tweet in tweets:
+            save_tweet_csv(tweet)
+
+	
+
 if __name__ == "__main__":
 
     t = TweetLearn()
