@@ -19,7 +19,7 @@ class Config:
 	    return self.cfg.get('credentials', name)
 
     def get_proxy(self, proxyname):
-	proxy = self.cfg.get(proxyname, proxy)
+	proxy = self.cfg.get(proxyname, 'proxy')
 	return proxy
 
     def get_csv(self):

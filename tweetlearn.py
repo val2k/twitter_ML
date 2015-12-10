@@ -13,13 +13,6 @@ from datetime import datetime
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tweetlearn.tweetlearn.settings'
 from tweetlearn.tweets.models import Tweet
 
-#auth = tweepy.OAuthHandler(consumer_key='MKbGv7ijw2HRx8XGTcu7nArDM',
-#		  consumer_secret='xmWacwRxkxe9nGYFWuJLoliqG4fXqFP47cicqm58vhRlD7YVCk')
-#auth.set_access_token(key='293610000-n5bU4mDlZXLNjk2EwGiH3wNNYjCP0Yf730Urtxa0',
-#		     secret='MGwMQVzFiX5iEUOLjo7IiSOon631GmUXLF2cQ1hZzU38A')
-#api = tweepy.API(auth, proxy='cache-etu.univ-lille1.fr:3128')
-#public_tweets = api.home_timeline()
-
 class TweetLearn():
 
     def __init__(self):
@@ -30,6 +23,7 @@ class TweetLearn():
         self.api = self.init_api()
     
     def init_parser(self):
+
 	parser = argparse.ArgumentParser(description='Parser')
 	parser.add_argument("--proxylille1", dest="proxylille1",
                             action="store_true",
@@ -48,10 +42,9 @@ class TweetLearn():
                                    consumer_secret=consumer_secret)
 	auth.set_access_token(key=access_key,
                               secret=access_secret)
-	# TODO:
-	if proxylille1:
-	    proxy = self.get_proxy('proxylille1')
-	    api = tweepy.API(auth, proxy='proxylille1')
+	if self.args_parser.proxylille1:
+	    proxy = self.cfg.get_proxy('proxylille1')
+	    api = tweepy.API(auth, proxy=proxy)
 	else:
 	    api = tweepy.API(auth)
 
@@ -61,17 +54,19 @@ class TweetLearn():
         return self.api.home_timeline()
     	
     def save_into_csv(self):
+	# TODO:
+	# Add a tweet o the CSV file 
         with open(self.cfg.csv, 'wb') as csvfile:
             csv_writer = csv.writer(csvfile)
 	    # TODO: 
             csv_writer.writerow(['TEST', 'TEST2'])
        
-    def push_into_orm(self):
-        pass
-    	
-    def save_tweet(self):
+    def save_into_orm(self):
 
+	# Save a tweet into the Django's ORM
+	# TODO:
 	# Check comment auto incrementer l'id
+	# Mettre en parametres les datas
 	date_today = datetime.date(datetime.now())
 	tweet_test = Tweet(user="blazazabla", 
                            text="lazazol", 
@@ -83,7 +78,7 @@ if __name__ == "__main__":
 
     t = TweetLearn()
     t.save_into_csv()
-    t.save_tweet()
+    t.save_into_orm()
 
     #for tweet in public_tweets:
     #	print "[id]: ", tweet.id
