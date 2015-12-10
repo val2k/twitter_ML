@@ -1,8 +1,8 @@
 #!/usr/bin/env python 
-
 import tweepy
 import csv
 import os
+import argparse
 
 from config import Config
 from datetime import datetime
@@ -23,13 +23,39 @@ from tweetlearn.tweets.models import Tweet
 class TweetLearn():
 
     def __init__(self):
+
         # Recherche des credentials via le ConfigParser
-        # 
         self.cfg = Config()
+	self.args_parser = self.init_parser()
         self.api = self.init_api()
     
+    def init_parser(self):
+	parser = argparse.ArgumentParser(description='Parser')
+	parser.add_argument("--proxylille1", dest="proxylille1",
+                            action="store_true",
+                            help="Use or not the Lille1's proxy")
+	args = parser.parse_args()
+	return args
+
     def init_api(self):
-        pass
+
+	consumer_key = self.cfg.get_credential('consumer_key')
+	consumer_secret = self.cfg.get_credential('consumer_secret')
+	access_key = self.cfg.get_credential('access_token_key')
+	access_secret = self.cfg.get_credential('access_token_secret')
+	
+        auth = tweepy.OAuthHandler(consumer_key=consumer_key,
+                                   consumer_secret=consumer_secret)
+	auth.set_access_token(key=access_key,
+                              secret=access_secret)
+	# TODO:
+	if proxylille1:
+	    proxy = self.get_proxy('proxylille1')
+	    api = tweepy.API(auth, proxy='proxylille1')
+	else:
+	    api = tweepy.API(auth)
+
+	return api
     
     def get_home_timeline(self):
         return self.api.home_timeline()
@@ -37,6 +63,7 @@ class TweetLearn():
     def save_into_csv(self):
         with open(self.cfg.csv, 'wb') as csvfile:
             csv_writer = csv.writer(csvfile)
+	    # TODO: 
             csv_writer.writerow(['TEST', 'TEST2'])
        
     def push_into_orm(self):

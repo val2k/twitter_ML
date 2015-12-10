@@ -20,8 +20,7 @@ class Config:
 
     def get_proxy(self, proxyname):
 	proxy = self.cfg.get(proxyname, proxy)
-	port = self.cfg.get(proxyname, port)
-	return (proxy, port)
+	return proxy
 
     def get_csv(self):
 	# Return the name of the cfg file
