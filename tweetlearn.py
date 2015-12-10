@@ -1,7 +1,9 @@
 #!/usr/bin/env python 
+
 import tweepy
 import csv
 import os
+
 from config import Config
 from datetime import datetime
 
@@ -10,8 +12,6 @@ from datetime import datetime
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tweetlearn.tweetlearn.settings'
 from tweetlearn.tweets.models import Tweet
-
-# from ... { chemin vers le model Django } import Tweet
 
 #auth = tweepy.OAuthHandler(consumer_key='MKbGv7ijw2HRx8XGTcu7nArDM',
 #		  consumer_secret='xmWacwRxkxe9nGYFWuJLoliqG4fXqFP47cicqm58vhRlD7YVCk')
@@ -43,9 +43,13 @@ class TweetLearn():
         pass
     	
     def save_tweet(self):
+
 	# Check comment auto incrementer l'id
 	date_today = datetime.date(datetime.now())
-	tweet_test = Tweet(user="blazazabla", text="lazazol", date=date_today, category=-1)
+	tweet_test = Tweet(user="blazazabla", 
+                           text="lazazol", 
+                           date=date_today,
+                            category=-1)
 	tweet_test.save()
 
 if __name__ == "__main__":
@@ -53,6 +57,7 @@ if __name__ == "__main__":
     t = TweetLearn()
     t.save_into_csv()
     t.save_tweet()
+
     #for tweet in public_tweets:
     #	print "[id]: ", tweet.id
     #	print "[user]: ", tweet.user.name
