@@ -1,0 +1,8 @@
+Fichier supprimés....
+db.csv
+tweetlearn.py (......)
+config.py
+
+
+Probleme DB Django:
+export DJANGO_SETTINGS_MODULE=tweetlearn.tweetlearn.settings
