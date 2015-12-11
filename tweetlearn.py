@@ -84,7 +84,7 @@ class TweetLearn():
             csv_writer = csv.writer(csvfile)
 	    # TODO: 
             #csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at)])
-            csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at)])
+            csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at, -1)]) # -1 car non annote
 	    self.logger.info("Tweet (%d) has been added to csv" % tweet.id)
        
     def save_tweet_orm(self, tweet):
@@ -102,7 +102,7 @@ class TweetLearn():
 			   user=tweet.user.name, 
                            text=tweet.text, 
                            date=date_today,
-                           category=-1) # -1 car le tweet n'est pas encore annote
+                           category=-1) # TODO: -1 car le tweet n'est pas encore annote (USELESS?)
 	tweet_test.save()
 	self.logger.info("Tweet (%d) has been added to the orm" % tweet.id)
 
