@@ -29,7 +29,3 @@ class Config:
 	# Return the name of the cfg file
         return self.cfg.get(csv, name)
 
-if __name__ == "__main__":
-	cfg = Config()
-	print(cfg.get_credential('consum_key'))
-	print cfg.cfg

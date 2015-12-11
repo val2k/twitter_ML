@@ -3,6 +3,7 @@
 
 import tweepy
 import csv
+import re
 import os
 import argparse
 import logging
@@ -17,6 +18,7 @@ from datetime import datetime
 #TODO GENERAL:
 #    - Faire le nettoyage de donnees
 #    - Gerer les unicode.....
+#    - Decoder les tweet.text sortantes
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'tweetlearn.tweetlearn.settings'
 from tweetlearn.tweets.models import Tweet
@@ -76,13 +78,12 @@ class TweetLearn():
     def save_tweet_csv(self, tweet):
 	# TODO:
 	# Add a tweet o the CSV file 
-        with open(self.cfg.csv, 'wb') as csvfile:
+	self.clean_tweet(tweet)
+        with open(self.cfg.csv, 'a') as csvfile:
             csv_writer = csv.writer(csvfile)
 	    # TODO: 
-	    tweet_username = tweet.user.name.encode("utf8")
-	    tweet_text = tweet.text.encode("utf8")
             #csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at)])
-            csv_writer.writerow([str(tweet.id), tweet_username, tweet_text, str(tweet.created_at)])
+            csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at)])
 	    self.logger.info("Tweet (%d) has been added to csv" % tweet.id)
        
     def save_tweet_orm(self, tweet):
@@ -90,42 +91,54 @@ class TweetLearn():
 	# Save a tweet into the Django's ORM
 	# TODO:
 	# Check comment auto incrementer l'id
-	# Mettre en parametres les datas
+	# Mettre en parametres les tweet.texts
+	# Changer le date=date_today
+
+	self.clean_tweet(tweet)
 	date_today = datetime.date(datetime.now())
-	user = tweet.user.name.encode("utf8")
-	text = tweet.text.encode("utf8")
 	
 	tweet_test = Tweet(id=tweet.id,
-			   user=user, 
-                           text=text, 
+			   user=tweet.user.name, 
+                           text=tweet.text, 
                            date=date_today,
                            category=-1)
 	tweet_test.save()
 	self.logger.info("Tweet (%d) has been added to the orm" % tweet.id)
 
 	
-    def save_tweets_orms(self, tweets):
+    def save_tweets_orm(self, tweets):
     	for tweet in tweets:
-	    save_tweet_orm(tweet)
+	    self.save_tweet_orm(tweet)
 
     def save_tweets_csv(self, tweets):
 	for tweet in tweets:
-            save_tweet_csv(tweet)
+            self.save_tweet_csv(tweet)
+
+    def clean_tweet(self, tweet):
+	
+	if type(tweet.text) is str:
+	    # Le nettoyage a deja ete effectue
+	    return
+
+	tweet.text = tweet.text.encode("utf8")
+	tweet.user.name = tweet.user.name.encode("utf8")
+	
+	diez = re.compile("#")
+	arobase = re.compile("@")
+	rt = re.compile("RT")
+	url = re.compile("htpps?://.*")
+	
+	diez.sub(tweet.text, "")
+	arobase.sub(tweet.text, "")
+	rt.sub(tweet.text, "")
+	url.sub(tweet.text, "")
 
 	
-
 if __name__ == "__main__":
 
     t = TweetLearn()
     # print(type(t.get_home_timeline()))
 
     public_tweets = t.get_home_timeline()
-    for tweet in public_tweets:
-	t.save_tweet_csv(tweet)
-	t.save_tweet_orm(tweet)
-    	print "[id]: ", tweet.id
-    	print "[user]: ", tweet.user.name
-    	print "[text]: ", tweet.text
-    	print "[date]: ", tweet.created_at
-    	print "______"
-
+    t.save_tweets_orm(public_tweets)
+    t.save_tweets_csv(public_tweets)
