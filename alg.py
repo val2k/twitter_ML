@@ -57,6 +57,7 @@ class Algos:
     def KNN(self, tweet, k):
 	# tweet: tweet a etiqueter
 	#     k: nombre de voisins
+	# TODO: methode "vote" a implementer
 
 	with open(config.ANNOTATED_CSV, 'r+') as annotated_file:
 	    csv_reader = csv.reader(annotated_file)
@@ -71,18 +72,31 @@ class Algos:
 		dist_k_neighbours[neighbour] = self.distance(tweet, neighbour)
 		#dist_k_neighbours[k_neighbours[i][2]] = self.distance(tweet, k_neighbours[i])
 
-	    print(dist_k_neighbours)
 	    
-	    for i in range(k + 1, nb_tweets):
-		dist = self.distance(tweet, k_neighbours[i])
+	    for i in range(k + 1, nb_tweets - 1):
+		dist = self.distance(tweet, csv_reader[i])
+
 		if dist < any(dist_k_neighbours.values()):
-		
-		
-		
-		
+
+		    higher_dist = max(dist_k_neighbours.values())
+		    key_to_delete = key_from_value(dist_k_neighbours, higher_dist)
+		    del dist_k_neighbours[key_to_delete]
+		    dist_k_neighbours[k_neighbours[i]] = value
+
+
+    def key_from_value(self, _dict, _value):
+	for key, value in _dict:
+	    if value == _value:
+		return key
+		    
 
     def distance(self, tweet1, tweet2):
     # TODO: implementer d'autres distances
+	if isinstance(tweet1, list):
+	    tweet1 = tweet1[2]
+	if isinstance(tweet2, list): 
+	    tweet2 = tweet2[2]
+
 	common_words = 0
 	total_words = len(re.findall(r"\w+", tweet1)) + \
 		      len(re.findall(r"\w+", tweet2))
@@ -99,7 +113,7 @@ class Algos:
 	
 if __name__ == "__main__":
     alg = Algos()
-    alg.KNN("test", 10)
+    print(alg.KNN("test", 10))
     print(alg.distance("lol lol lol", "bla bla bla"))
     print(alg.distance("lol lol lol", "lol lol lol"))
 	
