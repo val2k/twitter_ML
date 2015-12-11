@@ -7,9 +7,9 @@ import re
 import os
 import argparse
 import logging
+import config
 
 from logging.handlers import RotatingFileHandler
-from config import Config
 from datetime import datetime
 
 # This has to be done before importing Tweet from Django in order
@@ -28,7 +28,7 @@ class TweetLearn():
     def __init__(self):
 
         # Recherche des credentials via le ConfigParser
-        self.cfg = Config()
+        self.cfg = config.Config()
 	self.args_parser = self.init_parser()
         self.api = self.init_api()
 	self.logger = logging.getLogger()
@@ -79,7 +79,8 @@ class TweetLearn():
 	# TODO:
 	# Add a tweet o the CSV file 
 	self.clean_tweet(tweet)
-        with open(self.cfg.csv, 'a') as csvfile:
+
+        with open(config.CLEANED_CSV, 'a+') as csvfile:
             csv_writer = csv.writer(csvfile)
 	    # TODO: 
             #csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at)])
@@ -101,7 +102,7 @@ class TweetLearn():
 			   user=tweet.user.name, 
                            text=tweet.text, 
                            date=date_today,
-                           category=-1)
+                           category=-1) # -1 car le tweet n'est pas encore annote
 	tweet_test.save()
 	self.logger.info("Tweet (%d) has been added to the orm" % tweet.id)
 
@@ -123,16 +124,17 @@ class TweetLearn():
 	tweet.text = tweet.text.encode("utf8")
 	tweet.user.name = tweet.user.name.encode("utf8")
 	
-	diez = re.compile("#")
-	arobase = re.compile("@")
+	# TODO:
+	# A perfectionner
+	diez = re.compile("#(\w+)")
+	arobase = re.compile("@(\w+)")
 	rt = re.compile("RT")
-	url = re.compile("htpps?://.*")
+	url = re.compile("https://")
 	
-	diez.sub(tweet.text, "")
-	arobase.sub(tweet.text, "")
-	rt.sub(tweet.text, "")
-	url.sub(tweet.text, "")
-
+	tweet.text = diez.sub("\\1", tweet.text)
+	tweet.text = arobase.sub("", tweet.text)
+	tweet.text = rt.sub("", tweet.text)
+	tweet.text = url.sub("", tweet.text)
 	
 if __name__ == "__main__":
 
