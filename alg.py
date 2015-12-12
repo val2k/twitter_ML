@@ -132,6 +132,8 @@ class Algos:
 	### BAYES ###
 	#############
 
+    # TODO: To mettre en float...
+
     def get_tweets_from_class(self, _class):
 	# Retourne tous les tweets d'une classe donnee
 
@@ -181,14 +183,19 @@ class Algos:
 	
     #### PROBA ####
 
-    def proba_word(self, word, _class):
+    def proba_word(self, word, _class, occ_word, freq=0):
 	# P(m|c)
 	# Probabilite d'occurence du mot m dans un texte de la classe c
 
 	nb_words, total_classwords = self.nb_occurence(word, _class)
 	N = self.total_words()
 
-	return (nb_words + 1) / (total_classwords + N)
+	if freq:
+	    # Frequence
+ 	    return ((nb_words + 1) / (total_classwords + N)) ** occ_word
+	else:
+	    # Presence
+	    return (nb_words + 1) / (total_classwords + N)
 	
     def proba_class(self, _class):
 	# Probabilite de la classe	
@@ -199,18 +206,19 @@ class Algos:
 
 	return (nb_tweets_class / nb_tweets)
 	
-    def proba(self, tweet, _class):
+    def proba(self, tweet, _class, freq=0):
 	# Calcul reel de la proba: P(classe|t)
 	prob = 0
 	proba_class = self.proba_class(_class)
 
 	for word in tweet:
-	    prob += self.proba_word(word, _class) * proba_class
-
+	    if len(word) > 3:
+	        occ_word = tweet.count(word)
+	        prob += self.proba_word(word, _class, occ_word) * proba_class
 	
 	return prob
 
-    def classifier(self, tweet):
+    def classifier(self, tweet, freq=0):
 	
 	proba_neg = self.proba(tweet, 'negative')
 	proba_pos = self.proba(tweet, 'positive')
