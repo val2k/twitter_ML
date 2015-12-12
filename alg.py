@@ -205,7 +205,8 @@ class Algos:
 	proba_class = self.proba_class(_class)
 
 	for word in tweet:
-	    prob += proba_word(word, _class) * proba_class
+	    prob += self.proba_word(word, _class) * proba_class
+
 	
 	return prob
 
@@ -215,15 +216,14 @@ class Algos:
 	proba_pos = self.proba(tweet, 'positive')
 	proba_neu = self.proba(tweet, 'neutral')
 
-	if proba_pos > proba_neg && proba_pos > proba_neu:
+	if proba_pos > proba_neg and proba_pos > proba_neu:
 	    return 4
-	elif proba_neg > proba_pos && proba_neg > proba_neu:
+	elif proba_neg > proba_pos and proba_neg > proba_neu:
 	    return 0
 	else:
 	    return 2
 
 if __name__ == "__main__":
     alg = Algos()
-    tweets =  alg.get_tweets_from_class('negative')
-    #print(alg.KNN("J'aime manger de la puree ainsi que des frites lol :-)", 10))
+    print(alg.classifier("blablabla blablabla blablablabla"))
 	
