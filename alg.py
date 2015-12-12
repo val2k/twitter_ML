@@ -4,6 +4,7 @@ import config
 import csv
 import re
 
+from tweetlearn.tweets.models import Tweet
 from collections import Counter
 
 class Algos:
@@ -127,10 +128,59 @@ class Algos:
 	
 	return float(float(total_words - common_words) / total_words)
 	
+	#############
+	### BAYES ###
+	############
+
+    def Bayes(self):
+	pass
+
+    def get_tweets_from_class(self, _class):
+
+	if _class == 'negative':
+	    class_id = 0
+	elif _class == 'positive':
+	    class_id = '2'
+	elif _class == 'neutral':
+	    class_id = '1'
+	else:
+	    return -1    
+
+	tweets_in_class = Tweet.objects.filter(category=class_id)
+	return tweets_in_class
+
+    def total_words_in_class(self, _class):
+	total_words = 0
+
+	tweets = self.get_tweets_from_class(_class)
+	for tweet in tweets:
+	    total_words += len(re.findall(r"\w+", tweet.text))
+
+	return total_words
+
+    def nb_occurence(self, _word, _class):
+	# Return the number of occurence of a word in a class of tweets
+	# + the total number of words in this same class
+	word = 0
+	total_words = 0
 	
+	tweets = self.get_tweets_from_class(_class)
+	for tweet in tweets:
+	    words = re.findall(r"\w+", tweet.text)
+
+	    for word in words:
+		if word == _word:
+		    word += 1
+
+	    total_words += len(words)
+	
+	return (_word, total_words)
+	
+
 if __name__ == "__main__":
     alg = Algos()
-    print(alg.KNN("J'aime manger de la puree ainsi que des frites lol :-)", 10))
+    tweets =  alg.get_tweets_from_class('negative')
+    #print(alg.KNN("J'aime manger de la puree ainsi que des frites lol :-)", 10))
 	
 
 	
