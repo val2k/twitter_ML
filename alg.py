@@ -4,6 +4,8 @@ import config
 import csv
 import re
 
+from collections import Counter
+
 class Algos:
 
     def __init__(self):
@@ -61,11 +63,13 @@ class Algos:
 
 	with open(config.ANNOTATED_CSV, 'r+') as annotated_file:
 	    csv_reader = csv.reader(annotated_file)
-	    csv_reader = list(csv_reader)
-	    nb_tweets = len(csv_reader)
-	    k_neighbours = csv_reader[1:k]
+
+	    all_tweets = list(csv_reader)
+	    nb_tweets = len(all_tweets)
+	    k_neighbours = all_tweets[1:k]
 
 	    dist_k_neighbours = {}
+	    print dist_k_neighbours
 	    
 	    for neighbour in k_neighbours:
 		neighbour = neighbour[2]
@@ -74,18 +78,31 @@ class Algos:
 
 	    
 	    for i in range(k + 1, nb_tweets - 1):
-		dist = self.distance(tweet, csv_reader[i])
+		dist = self.distance(tweet, all_tweets[i])
 
 		if dist < any(dist_k_neighbours.values()):
 
 		    higher_dist = max(dist_k_neighbours.values())
-		    key_to_delete = key_from_value(dist_k_neighbours, higher_dist)
+
+		    key_to_delete = self.key_from_value(dist_k_neighbours, higher_dist)
 		    del dist_k_neighbours[key_to_delete]
-		    dist_k_neighbours[k_neighbours[i]] = value
+		    
+		    text = all_tweets[i][2]
+		    dist_k_neighbours[text] = dist
+		    print dist_k_neighbours
+
+	    return self.vote(dist_k_neighbours)
+
+    def vote(self, dist_k_neighbours):
+	counter = Counter(dist_k_neighbours.values())
+	# TODO: Gerer le cas ou il y a plusieurs valeurs identiques
+	# Choisir la key la plus basse
+	# Retourner la category !! Faire un tuple (text, category) dans dist_k_neighbours ?
+	return self.key_from_value(counter, max(counter.values()))
 
 
     def key_from_value(self, _dict, _value):
-	for key, value in _dict:
+	for key, value in _dict.iteritems():
 	    if value == _value:
 		return key
 		    
@@ -113,9 +130,7 @@ class Algos:
 	
 if __name__ == "__main__":
     alg = Algos()
-    print(alg.KNN("test", 10))
-    print(alg.distance("lol lol lol", "bla bla bla"))
-    print(alg.distance("lol lol lol", "lol lol lol"))
+    print(alg.KNN("J'aime manger de la puree ainsi que des frites lol :-)", 10))
 	
 
 	
