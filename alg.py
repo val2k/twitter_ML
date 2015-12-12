@@ -211,6 +211,7 @@ class Algos:
 	prob = 0
 	proba_class = self.proba_class(_class)
 
+	tweet = tweet.split(" ")
 	for word in tweet:
 	    if len(word) > 3:
 	        occ_word = tweet.count(word)
