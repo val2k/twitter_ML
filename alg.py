@@ -130,10 +130,7 @@ class Algos:
 	
 	#############
 	### BAYES ###
-	############
-
-    def Bayes(self):
-	pass
+	#############
 
     def get_tweets_from_class(self, _class):
 
@@ -158,10 +155,22 @@ class Algos:
 
 	return total_words
 
+    def total_words(self):
+	total_words = 0
+	tweets = Tweet.objects.all()
+	
+	for tweet in tweets:
+    	    total_words += len(re.findall(r"\w+", tweet.text))
+
+	return total_words
+	    
     def nb_occurence(self, _word, _class):
+
 	# Return the number of occurence of a word in a class of tweets
 	# + the total number of words in this same class
-	word = 0
+	# A modifier pour faire le calcul pour chaque mot. 
+
+	count_word = 0
 	total_words = 0
 	
 	tweets = self.get_tweets_from_class(_class)
@@ -170,12 +179,38 @@ class Algos:
 
 	    for word in words:
 		if word == _word:
-		    word += 1
+		    count_word += 1
 
 	    total_words += len(words)
 	
-	return (_word, total_words)
+	return (count_word, total_words)
 	
+    #### PROBA ####
+
+    def proba_word(self, word, _class):
+	nb_words, total_classwords = self.nb_occurence(word, _class)
+	
+	N = self.total_words()
+
+	return (nb_words + 1) / (total_classwords + N)
+	
+    def proba_class(self, _class):
+	
+	# Nombre de tweets de la classe / Nombre de tweets total
+	
+	nb_tweets_class = len(self.get_tweets_from_class(_class))
+	nb_tweets = len(Tweet.objects.all())
+
+	return (nb_tweets_class / nb_tweets)
+	
+    def proba(self, tweet, _class):
+	prob = 0
+	proba_class = self.proba_class(_class)
+
+	for word in tweet:
+	    prob += proba_word(word, _class) * proba_class
+	
+	return prob
 
 if __name__ == "__main__":
     alg = Algos()
