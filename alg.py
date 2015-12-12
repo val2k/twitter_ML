@@ -177,7 +177,6 @@ class Algos:
 		if word == _word:
 		    count_word += 1
 
-	
 	return (count_word, total_words)
 	
     #### PROBA ####
@@ -212,9 +211,9 @@ class Algos:
 
     def classifier(self, tweet):
 	
-	proba_neg = self.proba(tweet, _class)
-	proba_pos = self.proba(tweet, _class)
-	proba_neu = self.proba(tweet, _class)
+	proba_neg = self.proba(tweet, 'negative')
+	proba_pos = self.proba(tweet, 'positive')
+	proba_neu = self.proba(tweet, 'neutral')
 
 	if proba_pos > proba_neg && proba_pos > proba_neu:
 	    return 4
@@ -227,6 +226,4 @@ if __name__ == "__main__":
     alg = Algos()
     tweets =  alg.get_tweets_from_class('negative')
     #print(alg.KNN("J'aime manger de la puree ainsi que des frites lol :-)", 10))
-	
-
 	
