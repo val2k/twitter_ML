@@ -133,6 +133,7 @@ class Algos:
 	#############
 
     def get_tweets_from_class(self, _class):
+	# Retourne tous les tweets d'une classe donnee
 
 	if _class == 'negative':
 	    class_id = 0
@@ -146,16 +147,10 @@ class Algos:
 	tweets_in_class = Tweet.objects.filter(category=class_id)
 	return tweets_in_class
 
-    def total_words_in_class(self, _class):
-	total_words = 0
-
-	tweets = self.get_tweets_from_class(_class)
-	for tweet in tweets:
-	    total_words += len(re.findall(r"\w+", tweet.text))
-
-	return total_words
-
     def total_words(self):
+	# Retourne le nombre total de mots de la base de tweets
+	# Independemment des classes
+
 	total_words = 0
 	tweets = Tweet.objects.all()
 	
@@ -165,15 +160,16 @@ class Algos:
 	return total_words
 	    
     def nb_occurence(self, _word, _class):
-
-	# Return the number of occurence of a word in a class of tweets
-	# + the total number of words in this same class
-	# A modifier pour faire le calcul pour chaque mot. 
+	# Retourne le nombre d'occurences d'un mot dans un classe donnee
+	# Ainsi que le nombre total de mots dans cette classe
+	# TODO: Calculer tous les mots d'un coup, sinon pas du tout optimise
 
 	count_word = 0
 	total_words = 0
 	
 	tweets = self.get_tweets_from_class(_class)
+	total_words = len(tweets)
+
 	for tweet in tweets:
 	    words = re.findall(r"\w+", tweet.text)
 
@@ -181,21 +177,22 @@ class Algos:
 		if word == _word:
 		    count_word += 1
 
-	    total_words += len(words)
 	
 	return (count_word, total_words)
 	
     #### PROBA ####
 
     def proba_word(self, word, _class):
+	# P(m|c)
+	# Probabilite d'occurence du mot m dans un texte de la classe c
+
 	nb_words, total_classwords = self.nb_occurence(word, _class)
-	
 	N = self.total_words()
 
 	return (nb_words + 1) / (total_classwords + N)
 	
     def proba_class(self, _class):
-	
+	# Probabilite de la classe	
 	# Nombre de tweets de la classe / Nombre de tweets total
 	
 	nb_tweets_class = len(self.get_tweets_from_class(_class))
@@ -204,6 +201,7 @@ class Algos:
 	return (nb_tweets_class / nb_tweets)
 	
     def proba(self, tweet, _class):
+	# Calcul reel de la proba: P(classe|t)
 	prob = 0
 	proba_class = self.proba_class(_class)
 
