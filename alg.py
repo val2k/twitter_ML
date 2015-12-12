@@ -210,6 +210,19 @@ class Algos:
 	
 	return prob
 
+    def classifier(self, tweet):
+	
+	proba_neg = self.proba(tweet, _class)
+	proba_pos = self.proba(tweet, _class)
+	proba_neu = self.proba(tweet, _class)
+
+	if proba_pos > proba_neg && proba_pos > proba_neu:
+	    return 4
+	elif proba_neg > proba_pos && proba_neg > proba_neu:
+	    return 0
+	else:
+	    return 2
+
 if __name__ == "__main__":
     alg = Algos()
     tweets =  alg.get_tweets_from_class('negative')
