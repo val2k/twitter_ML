@@ -135,12 +135,23 @@ class TweetLearn():
 	tweet.text = arobase.sub("", tweet.text)
 	tweet.text = rt.sub("", tweet.text)
 	tweet.text = url.sub("", tweet.text)
+        print tweet.text
 	
 if __name__ == "__main__":
 
     t = TweetLearn()
     # print(type(t.get_home_timeline()))
+    tweet = "RT @RAPELITE: .@sethgueko .@Geogioxv3 s'inventent https://blablabla.com"
 
-    public_tweets = t.get_home_timeline()
-    t.save_tweets_orm(public_tweets)
-    t.save_tweets_csv(public_tweets)
+    diez = re.compile("#(\w+)")
+    arobase = re.compile("\.?@(\w+):?")
+    rt = re.compile("RT")
+    url = re.compile("https://")
+    
+    tweet = diez.sub("\\1", tweet)
+    tweet = arobase.sub("", tweet)
+    tweet = rt.sub("", tweet)
+    tweet = url.sub("", tweet)
+
+    print tweet
+   
