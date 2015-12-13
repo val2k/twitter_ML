@@ -152,7 +152,6 @@ class Algos:
     def total_words(self):
 	# Retourne le nombre total de mots de la base de tweets
 	# Independemment des classes
-
 	total_words = 0
 	tweets = Tweet.objects.all()
 	
@@ -173,6 +172,7 @@ class Algos:
 	total_words = len(tweets)
 
 	for tweet in tweets:
+	    # TODO: Optimisable ?
 	    words = re.findall(r"\w+", tweet.text)
 
 	    for word in words:
@@ -183,7 +183,7 @@ class Algos:
 	
     #### PROBA ####
 
-    def proba_word(self, word, _class, occ_word, freq=0):
+    def proba_word(self, word, _class, occ_word, freq=0, bigramme=False):
 	# P(m|c)
 	# Probabilite d'occurence du mot m dans un texte de la classe c
 
@@ -206,12 +206,24 @@ class Algos:
 
 	return (nb_tweets_class / nb_tweets)
 	
-    def proba(self, tweet, _class, freq=0):
+    def proba(self, tweet, _class, freq=0, bigramme=False):
 	# Calcul reel de la proba: P(classe|t)
 	prob = 0
 	proba_class = self.proba_class(_class)
 
 	tweet = tweet.split(" ")
+	
+	### bigramme ###
+	if bigramme:
+            tmp_tweet = []
+	    
+	    cpt = 0
+	    while cpt < len(tweet) - 1:
+		tmp_tweet.append(" ".join([tweet[cpt], tweet[cpt + 1]]))
+                cpt += 1
+            
+	    tweet = tmp_tweet
+
 	for word in tweet:
 	    if len(word) > 3:
 	        occ_word = tweet.count(word)
@@ -219,11 +231,11 @@ class Algos:
 	
 	return prob
 
-    def classifier(self, tweet, freq=0):
+    def classifier(self, tweet, freq=0, bigramme=False):
 	
-	proba_neg = self.proba(tweet, 'negative')
-	proba_pos = self.proba(tweet, 'positive')
-	proba_neu = self.proba(tweet, 'neutral')
+	proba_neg = self.proba(tweet, 'negative', freq=freq, bigramme=bigramme)
+	proba_pos = self.proba(tweet, 'positive', freq=freq, bigramme=bigramme)
+	proba_neu = self.proba(tweet, 'neutral', freq=freq, bigramme=bigramme)
 
 	if proba_pos > proba_neg and proba_pos > proba_neu:
 	    return 4
@@ -234,5 +246,5 @@ class Algos:
 
 if __name__ == "__main__":
     alg = Algos()
-    print(alg.classifier("blablabla blablabla blablablabla"))
+    print(alg.classifier("Je mange du pain et de la viande  ", bigramme=True))
 	
