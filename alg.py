@@ -160,7 +160,7 @@ class Algos:
 
 	return total_words
 	    
-    def nb_occurence(self, _word, _class):
+    def nb_occurence(self, _word, _class, bigramme=False):
 	# Retourne le nombre d'occurences d'un mot dans un classe donnee
 	# Ainsi que le nombre total de mots dans cette classe
 	# TODO: Calculer tous les mots d'un coup, sinon pas du tout optimise
@@ -173,7 +173,11 @@ class Algos:
 
 	for tweet in tweets:
 	    # TODO: Optimisable ?
-	    words = re.findall(r"\w+", tweet.text)
+
+	    if bigramme:
+		words = re.findall(r"\w+ \w+", tweet.text)
+	    else:
+	        words = re.findall(r"\w+", tweet.text)
 
 	    for word in words:
 		if word == _word:
@@ -187,7 +191,7 @@ class Algos:
 	# P(m|c)
 	# Probabilite d'occurence du mot m dans un texte de la classe c
 
-	nb_words, total_classwords = self.nb_occurence(word, _class)
+	nb_words, total_classwords = self.nb_occurence(word, _class, bigramme=bigramme)
 	N = self.total_words()
 
 	if freq:
