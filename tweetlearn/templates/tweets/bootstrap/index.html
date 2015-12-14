@@ -111,14 +111,20 @@
 				<tbody>
 		    		{% if tweets %}
 	                		{% for tweet in tweets %}
-					<tr>
+					    {% if tweet.category == 4 %}
+					        <tr style="background-color:#ff8080">
+					    {% elif tweet.category == 2 %}
+						<tr style="background-color:#adebad"> <!-- vert -->
+					    {% else %}
+						<tr style="background-color:#e0e0d1">
+					    {% endif %}
 						<td>{{tweet.id}}</td>
 						<td>{{tweet.user}}</td>
 						<td>{{tweet.text}}</td>
 						<td>{{tweet.date}}</td>
 						<td>{{tweet.request}}</td>
 						<td>{{tweet.category}}</td>
-					</tr>
+				 	        </tr>
 					{% endfor %}
 				{% else %}
 					<p> No tweets are available. </p>
