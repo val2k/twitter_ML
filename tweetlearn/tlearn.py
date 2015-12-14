@@ -197,6 +197,5 @@ class TweetLearn():
 	        data = self.alg.classifier_KNN(tweet, k)
 	        tweet = self.save_tweet_orm(data, request)
 	        returned_tweets.append(tweet)
-		print(returned_tweets)
 	
 	return returned_tweets

@@ -83,7 +83,7 @@ class Algos:
 		text_neighbour = neighbour[2]
 	        cat_neighbour = neighbour[4]
 	        dist_t_n = self.distance(txt_tweet, text_neighbour)
-		dist_k_neighbours[text_neighbour] = (dist_t_n, cat_neighbour) 
+		dist_k_neighbours[(text_neighbour, cat_neighbour)] = dist_t_n
 	    
 	    for i in range(k + 1, nb_tweets - 1):
 		dist = self.distance(txt_tweet, all_tweets[i][2])
@@ -96,30 +96,32 @@ class Algos:
 		    del dist_k_neighbours[key_to_delete]
 		    
 		    text = all_tweets[i][2]
-		    dist_k_neighbours[text] = (dist, all_tweets[i][4]) # TODO
+		    dist_k_neighbours[(text, all_tweets[i][4])] = dist
 
-	    print "vote:", self.vote(dist_k_neighbours)
-	    print "tweet:", tweet
-            print "AAABBBBCCCDDDEEEFFF"
-	    return (tweet, int(self.vote(dist_k_neighbours)[1]))
+	    # TODO
+	    vote = self.vote(dist_k_neighbours)[1]
+	    if not vote:
+		vote = 2
+	    else:
+		vote = int(vote)
+	
+	    return (tweet, vote) 
 
     def vote(self, dist_k_neighbours):
 	""" Determine la categorie d'un tweet grace a celles de ses plus
 	    proches voisins
 	"""
 
-	# TODO: A modifier car dist_k_neighbours est maintenant un tuple
-	counter = Counter(dist_k_neighbours.values())
-	# TODO: Gerer le cas ou il y a plusieurs valeurs identiques
-	# Choisir la key la plus basse
-	# Retourner la category !! Faire un tuple (text, category) dans dist_k_neighbours ?
-	return self.key_from_value(counter, min(counter.values())) 
+	return self.key_from_value(dist_k_neighbours, min(dist_k_neighbours.values())) 
 
 
     def key_from_value(self, _dict, _value):
+	keys = []
 	for key, value in _dict.iteritems():
 	    if value == _value:
 		return key
+		#keys.append(key)
+	#return keys
 		    
 
     def distance(self, tweet1, tweet2):
