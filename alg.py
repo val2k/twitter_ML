@@ -14,10 +14,6 @@ class Algos:
 
     ##### KEYWORDS #####
     def annotation_by_keywords(self):
-	# Ouverture du fichier csv nettoye
-	# On bouche sur la liste de tweets
-	# On effectue le process
-	# Ecrire du tweet dans le nouveau fichier
         
 	with open(config.ANNOTATED_CSV, 'a+') as annotated_csv:
 	    csv_writer = csv.writer(annotated_csv)
@@ -29,6 +25,10 @@ class Algos:
 	    	    csv_writer.writerow([tweet[0], tweet[1], tweet[2], tweet[3], category])
 	    	
     def process_annotation(self, tweet):
+	""" Methode qui effectue le travail reel d'annotation
+	    d'un tweet
+	"""
+
 	neg_count = 0
 	pos_count = 0
 
@@ -55,12 +55,11 @@ class Algos:
 
     ####################
     ####### KNN ########
-    ###################
+    ####################
 
     def KNN(self, tweet, k):
-	# tweet: tweet a etiqueter
-	#     k: nombre de voisins
-	# TODO: methode "vote" a implementer
+	""" Implementation de KNN (K nearest neighbour 
+	"""
 
 	with open(config.ANNOTATED_CSV, 'r+') as annotated_file:
 	    csv_reader = csv.reader(annotated_file)
@@ -71,12 +70,11 @@ class Algos:
 
 	    dist_k_neighbours = {}
 	    print dist_k_neighbours
-	    
+            
 	    for neighbour in k_neighbours:
-		neighbour = neighbour[2]
-		dist_k_neighbours[neighbour] = self.distance(tweet, neighbour)
-		#dist_k_neighbours[k_neighbours[i][2]] = self.distance(tweet, k_neighbours[i])
-
+		text_neighbour = neighbour[2]
+	        cat_neighbour = neighbour[4]
+		dist_k_neighbours[neighbour] = (self.distance(tweet, text_neighbour), cat_neighbour) # TODO
 	    
 	    for i in range(k + 1, nb_tweets - 1):
 		dist = self.distance(tweet, all_tweets[i])
@@ -89,17 +87,22 @@ class Algos:
 		    del dist_k_neighbours[key_to_delete]
 		    
 		    text = all_tweets[i][2]
-		    dist_k_neighbours[text] = dist
+		    dist_k_neighbours[text] = (dist, all_tweets[i][4]) # TODO
 		    print dist_k_neighbours
 
 	    return self.vote(dist_k_neighbours)
 
     def vote(self, dist_k_neighbours):
+	""" Determine la categorie d'un tweet grace a celles de ses plus
+	    proches voisins
+	"""
+
+	# TODO: A modifier car dist_k_neighbours est maintenant un tuple
 	counter = Counter(dist_k_neighbours.values())
 	# TODO: Gerer le cas ou il y a plusieurs valeurs identiques
 	# Choisir la key la plus basse
 	# Retourner la category !! Faire un tuple (text, category) dans dist_k_neighbours ?
-	return self.key_from_value(counter, max(counter.values()))
+	return self.key_from_value(counter, max(counter.values())) 
 
 
     def key_from_value(self, _dict, _value):
@@ -109,7 +112,9 @@ class Algos:
 		    
 
     def distance(self, tweet1, tweet2):
-    # TODO: implementer d'autres distances
+	""" Calcule la distance entre deux tweets
+	"""
+
 	if isinstance(tweet1, list):
 	    tweet1 = tweet1[2]
 	if isinstance(tweet2, list): 
@@ -132,10 +137,11 @@ class Algos:
 	### BAYES ###
 	#############
 
-    # TODO: To mettre en float...
+    # TODO: Tout mettre en float...
 
     def get_tweets_from_class(self, _class):
-	# Retourne tous les tweets d'une classe donnee
+	""" Retourne tous les tweets d'une classe donnee
+	"""
 
 	if _class == 'negative':
 	    class_id = 0
@@ -149,20 +155,25 @@ class Algos:
 	tweets_in_class = Tweet.objects.filter(category=class_id)
 	return tweets_in_class
 
-    def total_words(self):
-	# Retourne le nombre total de mots de la base de tweets
-	# Independemment des classes
+    def total_words(self, bigramme=False):
+	""" Retourne le nombre de mots total de la base d'apprentissage
+	"""
+
 	total_words = 0
 	tweets = Tweet.objects.all()
 	
 	for tweet in tweets:
-    	    total_words += len(re.findall(r"\w+", tweet.text))
+	    if bigramme:
+    	        total_words += len(re.findall(r"\w+ \w+", tweet.text))
+            else:	
+    	        total_words += len(re.findall(r"\w+", tweet.text))
 
 	return total_words
 	    
     def nb_occurence(self, _word, _class, bigramme=False):
-	# Retourne le nombre d'occurences d'un mot dans un classe donnee
-	# Ainsi que le nombre total de mots dans cette classe
+	""" Retourne le nombre d'occurences d'un mot dans un classe donnee
+	    ainsi que le nombre total de mots dans cette classe
+	"""
 	# TODO: Calculer tous les mots d'un coup, sinon pas du tout optimise
 
 	count_word = 0
@@ -188,11 +199,12 @@ class Algos:
     #### PROBA ####
 
     def proba_word(self, word, _class, occ_word, freq=0, bigramme=False):
-	# P(m|c)
-	# Probabilite d'occurence du mot m dans un texte de la classe c
+	""" Probabilite d'occurence du mot m dans un texte de la classe c
+	    P(m|c)
+	"""
 
 	nb_words, total_classwords = self.nb_occurence(word, _class, bigramme=bigramme)
-	N = self.total_words()
+	N = self.total_words(bigramme=bigramme)
 
 	if freq:
 	    # Frequence
@@ -202,8 +214,8 @@ class Algos:
 	    return (nb_words + 1) / (total_classwords + N)
 	
     def proba_class(self, _class):
-	# Probabilite de la classe	
-	# Nombre de tweets de la classe / Nombre de tweets total
+	""" Probabilite de la classe	
+	    Nombre de tweets de la classe / Nombre de tweets total """
 	
 	nb_tweets_class = len(self.get_tweets_from_class(_class))
 	nb_tweets = len(Tweet.objects.all())
@@ -211,13 +223,14 @@ class Algos:
 	return (nb_tweets_class / nb_tweets)
 	
     def proba(self, tweet, _class, freq=0, bigramme=False):
-	# Calcul reel de la proba: P(classe|t)
+	""" Calcul reel de la probabilite: P(classe|t)
+	"""
+
 	prob = 0
 	proba_class = self.proba_class(_class)
 
 	tweet = tweet.split(" ")
 	
-	### bigramme ###
 	if bigramme:
             tmp_tweet = []
 	    
