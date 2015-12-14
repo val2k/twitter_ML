@@ -20,6 +20,6 @@ from tweets import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^knn/', views.knn),
+    url(r'^parse/', views.parse_request),
 
 ]

@@ -68,14 +68,23 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
-			<input type="search" placeholder="Entrez votre requête"
-				name="the_search">
-			<input type=text list=browsers placerholder="Choisir un algo">
-				<datalist id=browsers>
-					<option> KNN
-					<option> Bayes
-				</datalist>
-			<input type="submit" value="Submit">
+		        <form action="/parse/" method="post">	
+			{% csrf_token %}
+			    <input type="search" placeholder="Entrez votre requête"
+			    	name="the_search" value="{{ the_search_value }}">
+			    <input type=text name="algo" list=browsers placerholder="Choisir un algo">
+			    	<datalist id="browsers" value="{{ algo_value }}">
+					<option> Keyword </option>
+			    		<option> KNN </option>
+			    		<option> BayesUnigramme (presence)</option>
+			    		<option> BayesBigramme (presence)</option>
+			    		<option> BayesUnigramme (frequence)</option>
+			    		<option> BayesBigramme (frequench)</option>
+			    	</datalist>
+			    <input type="checkbox" name="proxy" value="proxy_lille1"> Proxy (Lille1)
+			    <input type="submit" value="Submit">
+			</form>
+
 			<table class="table">
 				<caption> Table des tweets </caption>
 				

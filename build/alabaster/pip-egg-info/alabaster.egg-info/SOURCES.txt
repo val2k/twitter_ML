@@ -1,0 +1,17 @@
+LICENSE
+MANIFEST.in
+setup.cfg
+alabaster/__init__.py
+alabaster/_version.py
+alabaster/about.html
+alabaster/donate.html
+alabaster/layout.html
+alabaster/navigation.html
+alabaster/relations.html
+alabaster/support.py
+alabaster/theme.conf
+alabaster/static/alabaster.css_t
+pip-egg-info/alabaster.egg-info/PKG-INFO
+pip-egg-info/alabaster.egg-info/SOURCES.txt
+pip-egg-info/alabaster.egg-info/dependency_links.txt
+pip-egg-info/alabaster.egg-info/top_level.txt
