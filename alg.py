@@ -250,18 +250,18 @@ class Algos:
 
     def classifier(self, tweet, freq=0, bigramme=False):
 	
-	proba_neg = self.proba(tweet, 'negative', freq=freq, bigramme=bigramme)
-	proba_pos = self.proba(tweet, 'positive', freq=freq, bigramme=bigramme)
-	proba_neu = self.proba(tweet, 'neutral', freq=freq, bigramme=bigramme)
+	proba_neg = self.proba(tweet.text, 'negative', freq=freq, bigramme=bigramme)
+	proba_pos = self.proba(tweet.text, 'positive', freq=freq, bigramme=bigramme)
+	proba_neu = self.proba(tweet.text, 'neutral', freq=freq, bigramme=bigramme)
 
 	if proba_pos > proba_neg and proba_pos > proba_neu:
-	    return 4
+	    return (tweet, 4)
 	elif proba_neg > proba_pos and proba_neg > proba_neu:
-	    return 0
-	else:
-	    return 2
+	    return (tweet, 0)
+	else:               
+	    return (tweet, 2)
 
 if __name__ == "__main__":
-    alg = Algos()
+    alg = alg.Algos()
     print(alg.classifier("Je mange du pain et de la viande  ", bigramme=True))
 	
