@@ -28,7 +28,6 @@ class Config:
 	proxy = self.cfg.get(proxyname, 'proxy')
 	return proxy
 
-    def get_csv(self):
-	# Return the name of the cfg file
+    def get_csv(self, nom):
         return self.cfg.get(csv, name)
 

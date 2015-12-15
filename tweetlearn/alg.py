@@ -12,25 +12,17 @@ class Algos:
     def __init__(self):
 	self.cfg = config.Config()
 
+
+
     ####################
     ##### KEYWORDS #####
     ####################
 
-    def annotation_by_keywords(self):
-        
-	with open(config.ANNOTATED_CSV, 'a+') as annotated_csv:
-	    csv_writer = csv.writer(annotated_csv)
-            with open(config.CLEANED_CSV, 'a+') as cleaned_csv:
-	        csv_reader = csv.reader(cleaned_csv)
-                for tweet in csv_reader:
-	    	    text = tweet[2]
-	      	    category = self.process_annotation(text)
-		    # ecrire dans l'ORM Django
-	    	    csv_writer.writerow([tweet[0], tweet[1], tweet[2], tweet[3], category])
-	    	
+
     def classifier_keyw(self, tweet):
-	""" Methode qui effectue le travail reel d'annotation
-	    d'un tweet
+	""" Methode de classification d'un tweet via la methode par mots cles
+	    : tweet : tweet a classifier
+	    @return un tuple (TweetObject, categorie)
 	"""
 
 	tmp_tweet = tweet
@@ -53,6 +45,7 @@ class Algos:
 
 	res = pos_count - neg_count
 	
+	# TODO: verifier les valeurs des categories
 	if res == 0:
 	    return (tmp_tweet, 2)
 	elif res > 0:
@@ -60,46 +53,76 @@ class Algos:
 	else:
 	    return (tmp_tweet, 0)
 
+    def annotation_by_keywords(self):
+	""" Cette methode etait utilisee pour classifier des tweets d'une base csv via la methode
+	    par mots cles
+	    (deprecated)
+	"""
+        
+	with open(config.ANNOTATED_CSV, 'a+') as annotated_csv:
+	    csv_writer = csv.writer(annotated_csv)
+            with open(config.CLEANED_CSV, 'a+') as cleaned_csv:
+	        csv_reader = csv.reader(cleaned_csv)
+                for tweet in csv_reader:
+	    	    text = tweet[2]
+	      	    category = self.process_annotation(text)
+	    	    csv_writer.writerow([tweet[0], tweet[1], tweet[2], tweet[3], category])
+	    	
+
+
     ####################
     ####### KNN ########
     ####################
 
+
+
     def classifier_KNN(self, tweet, k):
-	""" Implementation de KNN (K nearest neighbour 
+	""" Classification d'un tweet via l'algo KNN (K nearest neighbour)
+	    : tweet : tweet a classifier
+	    : k     : nombre de voisins
+	    @return un tuple (TweetObject, categorie)
 	"""
 
 	with open(config.ANNOTATED_CSV, 'r+') as annotated_file:
 	    csv_reader = csv.reader(annotated_file)
 
+	    # Limite a 250 tweets
 	    all_tweets = list(csv_reader)
 	    nb_tweets = len(all_tweets)
-	    k_neighbours = all_tweets[1:k]
 
-	    dist_k_neighbours = {}
+	    # Creation de la liste des k premiers voisins
+	    k_neighbours = all_tweets[1:k]
+	    
+
+	    # Dictionnaire ayant pour cle un tuple (tweet.text et categorie) d'un voisin
+	    # et a pour valeur sa distance avec le tweet a classifier
+	    dist_neighbours = {}
             
-	    txt_tweet = tweet.text
+	    text_tweet = tweet.text
 
 	    for neighbour in k_neighbours:
 		text_neighbour = neighbour[2]
-	        cat_neighbour = neighbour[4]
-	        dist_t_n = self.distance(txt_tweet, text_neighbour)
-		dist_k_neighbours[(text_neighbour, cat_neighbour)] = dist_t_n
+	        cat_neighbour = neighbour[5]
+
+	        dist_t_n = self.distance(text_tweet, text_neighbour)
+		dist_neighbours[(text_neighbour, cat_neighbour)] = dist_t_n
 	    
 	    for i in range(k + 1, nb_tweets - 1):
-		dist = self.distance(txt_tweet, all_tweets[i][2])
+		dist = self.distance(text_tweet, all_tweets[i][2])
 
-		if dist < any(dist_k_neighbours.values()):
+		if dist < any(dist_neighbours.values()):
 
-		    higher_dist = max(dist_k_neighbours.values())
-
-		    key_to_delete = self.key_from_value(dist_k_neighbours, higher_dist)
-		    del dist_k_neighbours[key_to_delete]
+		    # On supprime la cle du tweet ayant la distance la plus grande
+		    higher_dist = max(dist_neighbours.values())
+		    key_to_delete = self.key_from_value(dist_neighbours, higher_dist)
+		    del dist_neighbours[key_to_delete]
 		    
+		    # On insere le nouveau tweet au dictionnaire
 		    text = all_tweets[i][2]
-		    dist_k_neighbours[(text, all_tweets[i][4])] = dist
+		    dist_neighbours[(text, all_tweets[i][5])] = dist
 
 	    # TODO
-	    vote = self.vote(dist_k_neighbours)[1]
+	    vote = self.vote(dist_neighbours)[1]
 	    if not vote:
 		vote = 2
 	    else:
@@ -107,12 +130,16 @@ class Algos:
 	
 	    return (tweet, vote) 
 
-    def vote(self, dist_k_neighbours):
-	""" Determine la categorie d'un tweet grace a celles de ses plus
+    def vote(self, dist_neighbours):
+	""" Retourne la categorie d'un tweet grace a celles de ses plus
 	    proches voisins
+	    : dist_neighbours : dictionnaire associant un tuple (text_voisin, categ_voisin)
+			        ayant pour valeur la distance avec le tweet a classifier
+	    @return la categorie du plus proche voisin
 	"""
 
-	return self.key_from_value(dist_k_neighbours, min(dist_k_neighbours.values())) 
+	counter = Counter(dist_neighbours)
+	return self.key_from_value(counter, max(counter.values())) 
 
 
     def key_from_value(self, _dict, _value):
@@ -145,13 +172,28 @@ class Algos:
 		common_words += 1
 	
 	return float(float(total_words - common_words) / total_words)
+
+
+   ####################		
+   ####### BAYES ######
+   ####################
+
+
+    def classifier_bayes(self, tweet, freq=False, bigramme=False):
 	
-	################
-	#### BAYES #####
-	################
+	proba_neg = self.proba(tweet.text, 'negative', freq=freq, bigramme=bigramme)
+	proba_pos = self.proba(tweet.text, 'positive', freq=freq, bigramme=bigramme)
+	proba_neu = self.proba(tweet.text, 'neutral', freq=freq, bigramme=bigramme)
+
+	if proba_pos > proba_neu and proba_pos >proba_neg:
+	    return (tweet, 4)
+	elif proba_neg > proba_pos and proba_neg > proba_neu:
+	    return (tweet, 0)
+	else:               
+	    return (tweet, 2)
+
 
     # TODO: Tout mettre en float...
-
     def get_tweets_from_class(self, _class):
 	""" Retourne tous les tweets d'une classe donnee
 	"""
@@ -159,13 +201,12 @@ class Algos:
 	if _class == 'negative':
 	    class_id = 0
 	elif _class == 'positive':
-	    class_id = '2'
+	    class_id = 4
 	elif _class == 'neutral':
-	    class_id = '1'
-	else:
-	    return -1    
+	    class_id = 2
 
 	tweets_in_class = Tweet.objects.filter(category=class_id)
+	
 	return tweets_in_class
 
     def total_words(self, bigramme=False):
@@ -193,15 +234,17 @@ class Algos:
 	total_words = 0
 	
 	tweets = self.get_tweets_from_class(_class)
-	total_words = len(tweets)
+	total_words = 0
 
 	for tweet in tweets:
 	    # TODO: Optimisable ?
 
 	    if bigramme:
 		words = re.findall(r"\w+ \w+", tweet.text)
+	        total_words += len(words)
 	    else:
 	        words = re.findall(r"\w+", tweet.text)
+		total_words += len(words)
 
 	    for word in words:
 		if word == _word:
@@ -219,21 +262,27 @@ class Algos:
 	nb_words, total_classwords = self.nb_occurence(word, _class, bigramme=bigramme)
 	N = self.total_words(bigramme=bigramme)
 
+	nb_words = float(nb_words)
+	total_classwords = float(total_classwords)
+	N = float(N)
+
 	if freq:
 	    # Frequence
- 	    return float((nb_words + 1) / (total_classwords + N + 1)) ** occ_word
+	
+ 	    return float(nb_words / (total_classwords + N )) ** occ_word
 	else:
 	    # Presence
-	    return float((nb_words + 1) / (total_classwords + N + 1))
+	    return float(nb_words / (total_classwords + N ))
 	
     def proba_class(self, _class):
 	""" Probabilite de la classe	
 	    Nombre de tweets de la classe / Nombre de tweets total """
 	
-	nb_tweets_class = len(self.get_tweets_from_class(_class))
-	nb_tweets = len(Tweet.objects.all())
-
-	return (nb_tweets_class / (nb_tweets + 1))
+	nb_tweets_class = float(len(self.get_tweets_from_class(_class)))
+	nb_tweets = float(len(Tweet.objects.all()))
+	retuned_value = float(nb_tweets_class / nb_tweets)
+	return retuned_value
+	
 	
     def proba(self, tweet, _class, freq=False, bigramme=False):
 	""" Calcul reel de la probabilite: P(classe|t)
@@ -260,18 +309,3 @@ class Algos:
 	        prob += self.proba_word(word, _class, occ_word) * proba_class
 	
 	return prob
-
-    def classifier_bayes(self, tweet, freq=False, bigramme=False):
-	
-	proba_neg = self.proba(tweet.text, 'negative', freq=freq, bigramme=bigramme)
-	proba_pos = self.proba(tweet.text, 'positive', freq=freq, bigramme=bigramme)
-	proba_neu = self.proba(tweet.text, 'neutral', freq=freq, bigramme=bigramme)
-
-	if proba_pos > proba_neg and proba_pos > proba_neu:
-	    return (tweet, 4)
-	elif proba_neg > proba_pos and proba_neg > proba_neu:
-	    return (tweet, 0)
-	else:               
-	    return (tweet, 2)
-
-	

@@ -80,7 +80,7 @@
 			    		<option> BayesUnigramme (presence)</option>
 			    		<option> BayesBigramme (presence)</option>
 			    		<option> BayesUnigramme (frequence)</option>
-			    		<option> BayesBigramme (frequench)</option>
+			    		<option> BayesBigramme (frequence)</option>
 			    	</datalist>
 			    <input type="checkbox" name="proxy" value="proxy_lille1"> Proxy (Lille1)
 			    <input type="submit" value="Submit">
@@ -112,12 +112,12 @@
 				<tbody>
 		    		{% if tweets %}
 	                		{% for tweet in tweets %}
-					    {% if tweet.category == 4 %}
-					        <tr style="background-color:#ff8080">
-					    {% elif tweet.category == 2 %}
+					    {% if tweet.category == 0 %}
+					        <tr style="background-color:#ff8080"> <!-- rouge -->
+					    {% elif tweet.category == 4 %}
 						<tr style="background-color:#adebad"> <!-- vert -->
 					    {% else %}
-						<tr style="background-color:#e0e0d1">
+						<tr style="background-color:#e0e0d1"> <!! gray -->
 					    {% endif %}
 						<td>{{tweet.id}}</td>
 						<td>{{tweet.user}}</td>

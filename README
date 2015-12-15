@@ -1,4 +1,5 @@
 TweetLearn est une application permettant de classifier des tweets selon leur sentiment général (positif, négatif, neutre)
+TweetLearn se base sur Django et utilise Tweepy pour l'API Twitter
 
 How to install it ?
 	- Install/create a virtualenv: ("pip install virtualenv" if not installed)
@@ -9,6 +10,7 @@ How to install it ?
 
 How to launch it ?
 	-> "python manage.py runserver" in the tweetlearn folder
+	Your application is running at port 8080
 
 
 Tips:

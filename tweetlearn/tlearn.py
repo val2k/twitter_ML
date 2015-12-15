@@ -14,11 +14,6 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
 
-#TODO GENERAL:
-#    - (Faire le nettoyage de donnees)
-#    - (Decoder les tweet.text sortantes)
-#    - Faire
-
 # This has to be done before importing Tweet from Django in order
 # to avoid a Django error
 
@@ -30,7 +25,6 @@ class TweetLearn():
     def __init__(self, proxy=False):
 	
         self.cfg = config.Config()
-	#self.args_parser = self.init_parser()
         self.api = self.init_api(proxy)
 	self.logger = logging.getLogger()
 	self.init_logger()
@@ -51,6 +45,7 @@ class TweetLearn():
     
     def init_parser(self):
 	""" Initialisation du parser
+	    (deprecated)
 	"""
 
 	parser = argparse.ArgumentParser(description='Parser')
@@ -87,12 +82,12 @@ class TweetLearn():
         return self.api.home_timeline()
     	
     def search(self, request):
-	return self.api.search(request)
+	return self.api.search(request, lang="fr")
 
     def save_tweet_csv(self, tweet, request):
-	""" Ajoute un tweet dans le fichier CSV des tweets nettoyes mais
-	    non annotes
-	    @tweet: tweet a ajouter au fichier
+	""" Ajoute un tweet dans le fichier CSV des tweets nettoyes et annotes
+	    : tweet   : tuple (TweetObject, category), tweet a ajouter au fichier
+	    : request : requete ayant permis la recuperation du tweet
 	"""
 
 	tweet, category = tweet
@@ -100,19 +95,16 @@ class TweetLearn():
 
         with open(config.ANNOTATED_CSV, 'a+') as csvfile:
             csv_writer = csv.writer(csvfile)
-            csv_writer.writerow([str(tweet.id), tweet.user.name, tweet.text, str(tweet.created_at), request, category]) # -1 car non annote
+            csv_writer.writerow([str(tweet.id), str(tweet.user.name), str(tweet.text), str(tweet.created_at), request, category]) 
 	    self.logger.info("Tweet (%d) has been added to csv" % tweet.id)
        
     def save_tweet_orm(self, tweet, request):
 		
 	""" Ajoute un tweet dans l'ORM de Django
-	    @tweet: tuple comprenenant le tweet a ajouter a l'ORM (objet retourne)
-		    par tweepy, ainsi que sa catégorie
+	    : tweet   : tuple (TweetObject, category, tweet a ajouter au fichier
+	    : requete : requete ayant permis la recuperation du tweet
 		    
 	"""
-	# TODO:
-	# Mettre en parametres les tweet.text (???)
-	# Changer le date=date_today (!!!!)
 
 	tweet, category = tweet
 	self.clean_tweet(tweet)
@@ -130,36 +122,39 @@ class TweetLearn():
 
 	
     def save_tweets_orm(self, tweets, request):
-	""" Ajoute plusieurs tweets à l'ORM 
-	"""
     	for tweet in tweets:
 	    self.save_tweet_orm(tweet, request)
 
     def save_tweets_csv(self, tweets, request):
-	""" Ajoute plusieurs tweets au fichier CSV
-	"""
 	for tweet in tweets:
             self.save_tweet_csv(tweet, request)
 
     def clean_tweet(self, tweet):
+	""" Nettoyage d'un tweet
+	    : tweet : (TwwetObject), tweet a nettoyer
+	"""
 	
 	if type(tweet.text) is str:
 	    # Le nettoyage a deja ete effectue
 	    return
+
 	tweet.text = tweet.text.encode("utf8")
 	tweet.user.name = tweet.user.name.encode("utf8")
 	
 	# TODO:
-	# A perfectionner, surtout pour l'URL
+	# A perfectionner: caraceters etranger unicode ?
 
 	diez = re.compile("#(\w+)")
 	arobase = re.compile("@(\w+):?")
 	rt = re.compile("RT")
 	url = re.compile("(http)s*:*/*/*t*(.)*c*o*/*[a-zA-Z0-9]*")
+	ret = re.compile("\n")
 	e_accent = re.compile("é|è|ê|ë");
 	a_accent = re.compile("à|â|ä");
 	i_accent = re.compile("î|ï|ì");
 	o_accent = re.compile("ô|ö|ò");
+	nombre = re.compile("[0-9]+[0-9]*")
+	
 
 	tweet.text = diez.sub("\\1", tweet.text)
 	tweet.text = arobase.sub("", tweet.text)
@@ -169,9 +164,18 @@ class TweetLearn():
 	tweet.text = a_accent.sub("a", tweet.text)
 	tweet.text = i_accent.sub("i", tweet.text)
 	tweet.text = o_accent.sub("o", tweet.text)
+	tweet.text = ret.sub("", tweet.text)
 	
     def process_classif(self, algo, request, freq=False, big=False):
+	""" Methode d'entree pour la classification avec les divers algos
+	    : algo    : algo utilise pour la classification
+	    : request : requete ayant permis de recuperer les tweets
+	    : freq    : boolean pour l'algo Bayes (classification en presence / frequence)
+	    : big     : boolean pour l'algo Bayes (classification unigramme / bigramme)
+	"""
+
         algos = ('KNN', 'Bayes', 'Keyword')
+	request = request.encode("utf8")
 
 	if algo not in algos:
 	    return
@@ -186,16 +190,19 @@ class TweetLearn():
 	    if algo == "Bayes":
 	        data = self.alg.classifier_bayes(tweet, freq, big)
 	        tweet = self.save_tweet_orm(data, request)
+	        self.save_tweet_csv(data, request)
 	        returned_tweets.append(tweet)
-	    # TODO
 	    elif algo == "Keyword":
 	        data = self.alg.classifier_keyw(tweet)
 	        tweet = self.save_tweet_orm(data, request)
+	        self.save_tweet_csv(data, request)
 	        returned_tweets.append(tweet)
 	    elif algo == "KNN":
+		# TODO: k doit etre parametrable
 		k = 10
 	        data = self.alg.classifier_KNN(tweet, k)
 	        tweet = self.save_tweet_orm(data, request)
+	        self.save_tweet_csv(data, request)
 	        returned_tweets.append(tweet)
 	
 	return returned_tweets
