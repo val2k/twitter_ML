@@ -1,8 +1,16 @@
-Fichier supprimés....
-db.csv
-tweetlearn.py (......)
-config.py
+TweetLearn est une application permettant de classifier des tweets selon leur sentiment général (positif, négatif, neutre)
+
+How to install it ?
+	- Install/create a virtualenv: ("pip install virtualenv" if not installed)
+		-> create your virtualenv: "virtualenv venv" 
+		-> access this virtualenv: "source venv/bin/activate"
+	- Install all the dependencies required:
+		-> pip install requirements.txt
+
+How to launch it ?
+	-> "python manage.py runserver" in the tweetlearn folder
 
 
-Probleme DB Django:
-export DJANGO_SETTINGS_MODULE=tweetlearn.tweetlearn.settings
+Tips:
+	- Don't forget to fill the parameters in the tweetlearn/cfg/config.ini file
+	
